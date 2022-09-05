@@ -1,104 +1,27 @@
-import { useEffect, useState } from 'react'
-import {
-  addDoc,
-  setDoc,
-  collection,
-  CollectionReference,
-  getDocs,
-  doc,
-  updateDoc,
-} from 'firebase/firestore'
-import { db } from './config/firebaseConfig'
-
-type dataProps = {
-  id: string
-  name: string
-  age: number
-  purpose: string
-}
+import Login from './components/Login'
+import Signup from './components/Signup'
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
+import { PrivateRoute } from './components/PrivateRoute'
+import UpdateProfile from './components/UpdateProfile'
+import Home from './components/Home'
+import PublicRoutes from './components/PublicRoute'
 
 function App() {
-  const [newName, setNewName] = useState<string>('')
-  const [age, setAge] = useState<number>(0)
-  const [purpose, setPurpose] = useState<string>('')
-  const [users, setUsers] = useState<any>()
-  const usersCollectionRef = collection(
-    db,
-    'users'
-  ) as CollectionReference<dataProps>
-
-  const makeNewUser = async (e: any) => {
-    e.preventDefault()
-    try {
-      await addDoc(usersCollectionRef as any, {
-        name: newName,
-        age: age,
-        purpose: purpose,
-      })
-    } catch (error: any) {
-      console.log(error)
-    }
-  }
-
-  const getUsers = async () => {
-    const data = await getDocs(usersCollectionRef)
-    const nextData = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
-    setUsers(nextData)
-  }
-
-  const updateUser = async (id: string) => {
-    const taskDocRef = doc(db, 'users', id)
-    try {
-      await updateDoc(taskDocRef, {
-        newName: newName,
-        age: age,
-        purpose: purpose,
-      })
-    } catch (err) {
-      alert(err)
-    }
-  }
-
-  useEffect(() => {
-    getUsers()
-  }, [])
   return (
     <div className="App">
-      <form action="" onSubmit={makeNewUser}>
-        <div className="newUser">
-          <input
-            type="text"
-            placeholder="name"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-          />
-          <input
-            type="number"
-            placeholder="age"
-            value={age}
-            onChange={(e: any) => setAge(e.target.value)}
-          />
-          <input
-            type="text"
-            placeholder="purpose"
-            value={purpose}
-            onChange={(e) => setPurpose(e.target.value)}
-          />
-          <button>submit</button>
-        </div>
-      </form>
-      {users?.map((user: dataProps) => {
-        return (
-          <div key={user.id}>
-            {user.name}
-            <form onClick={() => updateUser(user.id)}>
-              {' '}
-              <input type="text" />
-              <button> submit</button>
-            </form>
-          </div>
-        )
-      })}
+      <Router>
+        <Routes>
+          <Route path="/" element={<PrivateRoute />}>
+            <Route index element={<Home />} />
+
+            <Route path="/update-profile" element={<UpdateProfile />} />
+          </Route>
+          <Route element={<PublicRoutes />}>
+            <Route path="login" element={<Login />} />
+            <Route path="signup" element={<Signup />} />
+          </Route>
+        </Routes>
+      </Router>
     </div>
   )
 }
